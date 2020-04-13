@@ -2,7 +2,7 @@
     <div id="con" style="height: 100%">
         <el-header>
 
-            <el-button round @click="dialogFormVisible = true">登录</el-button>
+            <el-button v-if = "!id" round @click="dialogFormVisible = true">登录</el-button>
             <el-dialog title="登录" :visible.sync="dialogFormVisible" center>
 
                 <el-form>
@@ -22,6 +22,10 @@
                     <el-button type="primary" @click="login">登 录</el-button>
                 </div>
             </el-dialog>
+
+  
+            <el-button v-if = "id" round @click="logOut">注销</el-button>
+
             <el-button round @click="registerdialogFormVisible = true">注册</el-button>
             <el-button round @click="getHistory">查询历史记录</el-button>
             <el-dialog title="注册" :visible.sync="registerdialogFormVisible" center>
@@ -44,17 +48,27 @@
                 </div>
             </el-dialog>
         </el-header>
+
         <el-container style="height: 100%">
             <el-main>
                 <div id="message-box">
                     <ul>
                         <li v-for="item in messages" v-bind:key="item.index" class="message" >
+
+                            <div v-if="item.username !== nickname" class="othermsg">
                             <p id="username">{{item.username}}: </p>
                             <p>{{ item.content }}</p>
+                            </div>
+                            <div v-else class="memsg">
+                            
+                            <p>{{ item.content }}</p>
+                            <p id="username">:{{item.username}} </p>
+                            </div>                    
+
                         </li>
                     </ul>
                 </div>
-                <el-input id="input" v-model="input" placeholder="请输入内容 回车表示发送" v-on:keyup.native.enter="emitMessage"></el-input>
+                <el-input id="input" v-model="input" :placeholder= "inputplaceholder" v-on:keyup.native.enter="emitMessage"></el-input>
             </el-main>
         </el-container>
     </div>
@@ -77,7 +91,8 @@
                 password: "",
                 canEmit: false,
                 messages: [],
-                queryCount: 1
+                queryCount: 1,
+                inputplaceholder: "请先登录再发送消息" 
             }
         },
         computed: {
@@ -153,16 +168,25 @@
                     .then(res => {
                         console.log(res);
                         if(res.data.code === 200){
+                            this.password = "";
                             this.canEmit = true;
                             this.dialogFormVisible = false;
                             this.id = res.data.data.id;
                             this.nickname = res.data.data.nickname;
                             this.avatraUrl = res.data.data.headImageUrl;
                             this.socket.emit("join", this.id,  this.nickname);
+                            this.inputplaceholder = this.nickname + ": 请输入内容 回车表示发送"
                         }else{
                             alert("密码或用户名错误 登陆gg");
                         }
                     })
+            },
+            logOut(){
+                    this.canEmit = false;
+                    this.id = "";
+                    this.nickname = "";
+                    this.avatraUrl = "";
+                    this.inputplaceholder = "请先登录再发送消息";
             }
         },
         watch:{
@@ -188,6 +212,7 @@
         padding: 2px;
         border: 1px solid ghostwhite;
         box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
     }
 
     #message-box{
@@ -195,6 +220,12 @@
         border: 1px solid ghostwhite;
         box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
     }
+
+
+    .memsg{
+        text-align:right;
+    }
+
     #username{
         margin: 0 3px;
     }

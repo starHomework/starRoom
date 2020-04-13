@@ -7,7 +7,7 @@ module.exports = {
     db: {
         name: 'postgres',
         username: 'postgres',
-        pwd: 'postgres',
+        pwd: 'szy1996',
         host: '127.0.0.1',
         database: 'stardb'
     },
